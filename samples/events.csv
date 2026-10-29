@@ -1,0 +1,6 @@
+# sequence,side(B/A),price_tick,absolute_quantity; zero deletes
+1,B,100100,10
+2,A,100200,12
+2,A,100200,12
+4,B,100101,5
+5,A,100199,7

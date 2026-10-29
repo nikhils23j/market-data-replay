@@ -1,0 +1,4 @@
+# Snapshot after feed sequence 3; replaces the whole book atomically.
+seq,3
+B,100100,20
+A,100200,12
