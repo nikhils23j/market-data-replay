@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Full evaluation: clean Release build, tests, fuzzing, demo replays, benchmark,
 # ASan+UBSan and TSan runs. Logs go to build/eval/, summary to results.json.
-# Takes roughly 5-8 minutes on an idle M2 laptop.
+# The recorded run took 113 s on an M2 laptop (see eval_wall_seconds in results.json).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT=$(pwd)
