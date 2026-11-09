@@ -409,8 +409,7 @@ market-data-replay/
 │   ├── run_eval.sh               full evaluation → results.json
 │   └── make_figures.py           results.json → docs/img/*.png
 ├── docs/img/                     README charts
-├── results.json                  recorded evaluation
-└── INTERVIEW_NOTES.md
+└── results.json                  recorded evaluation
 ```
 
 ## What this isn't / limits
@@ -430,5 +429,3 @@ market-data-replay/
 - **Laptop numbers.** One machine, shared with other work, no core pinning.
   Your numbers will differ.
 - Not production code and not used by anyone for trading.
-
-
