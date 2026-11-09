@@ -431,10 +431,4 @@ market-data-replay/
   Your numbers will differ.
 - Not production code and not used by anyone for trading.
 
-## More
 
-Design decisions, trade-offs and the questions I expect to be asked are in
-[INTERVIEW_NOTES.md](INTERVIEW_NOTES.md).
-
-Built with AI pair-programming help (design discussion, code and review). I
-ran every test and measurement in this README myself.
