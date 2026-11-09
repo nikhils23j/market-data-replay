@@ -1,34 +1,44 @@
-CXX ?= clang++
-CXXFLAGS ?= -std=c++20 -O3 -DNDEBUG -Wall -Wextra -Wpedantic
-CPPFLAGS ?= -Iinclude
+# Thin wrapper around CMake. All build output lives under build/.
+JOBS ?= 8
+REL  = build/release
+ASAN = build/asan
+TSAN = build/tsan
 
-LIBSRC = src/book.cpp src/io.cpp src/replay.cpp
-BUILDDIR = build
+.PHONY: all test fuzz demo bench eval asan tsan clean
 
-.PHONY: all test bench demo clean
+all:
+	cmake -S . -B $(REL) -DCMAKE_BUILD_TYPE=Release
+	cmake --build $(REL) -j $(JOBS)
 
-all: $(BUILDDIR)/mdr_replay $(BUILDDIR)/mdr_bench $(BUILDDIR)/mdr_tests
+test: all
+	ctest --test-dir $(REL) --output-on-failure
 
-$(BUILDDIR):
-	mkdir -p $(BUILDDIR)
+fuzz: all
+	./$(REL)/mdr_fuzz --seeds 8 --events 500000 --sessions 40 --session-messages 20000
 
-$(BUILDDIR)/mdr_replay: src/main.cpp $(LIBSRC) | $(BUILDDIR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
+demo: all
+	./$(REL)/mdr_gen --out build/demo --messages 200000 --seed 7
+	./$(REL)/mdr_replay --dir build/demo
 
-$(BUILDDIR)/mdr_bench: src/bench.cpp $(LIBSRC) | $(BUILDDIR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
+bench: all
+	./$(REL)/mdr_gen --out build/data --messages 3000000 --seed 42
+	./$(REL)/mdr_bench --dir build/data --reps 5 --pace-reps 3
 
-$(BUILDDIR)/mdr_tests: tests/tests.cpp $(LIBSRC) | $(BUILDDIR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
+eval:
+	./scripts/run_eval.sh
 
-test: $(BUILDDIR)/mdr_tests
-	./$(BUILDDIR)/mdr_tests
+asan:
+	cmake -S . -B $(ASAN) -DCMAKE_BUILD_TYPE=Debug -DMDR_SANITIZE=address,undefined
+	cmake --build $(ASAN) -j $(JOBS)
+	./$(ASAN)/mdr_tests
+	./$(ASAN)/mdr_fuzz --seeds 4 --events 100000 --sessions 8 --session-messages 10000
 
-demo: $(BUILDDIR)/mdr_replay
-	./$(BUILDDIR)/mdr_replay --events samples/events.csv --snapshot samples/snapshot.csv
-
-bench: $(BUILDDIR)/mdr_bench
-	./$(BUILDDIR)/mdr_bench --events 100000 --levels 4096 --seed 42
+tsan:
+	cmake -S . -B $(TSAN) -DCMAKE_BUILD_TYPE=Debug -DMDR_SANITIZE=thread
+	cmake --build $(TSAN) -j $(JOBS) --target mdr_tests mdr_gen mdr_replay
+	./$(TSAN)/mdr_tests
+	./$(TSAN)/mdr_gen --out build/tsan/data --messages 200000 --seed 3
+	./$(TSAN)/mdr_replay --dir build/tsan/data --threads 2
 
 clean:
-	rm -rf $(BUILDDIR)
+	rm -rf build
